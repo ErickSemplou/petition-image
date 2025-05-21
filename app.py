@@ -4,8 +4,6 @@ import requests
 from bs4 import BeautifulSoup
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
-font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
-font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
 
 app = Flask(__name__)
 
