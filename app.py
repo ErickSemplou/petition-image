@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, send_file
 import requests
 from bs4 import BeautifulSoup
@@ -64,4 +65,4 @@ def petition_image():
     return send_file(image, mimetype='image/png')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
