@@ -1,5 +1,5 @@
-
 flask
 pillow
 requests
 beautifulsoup4
+gunicorn
