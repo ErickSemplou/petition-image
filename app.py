@@ -6,14 +6,6 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 
-font_path = Path("DejaVuSans.ttf")
-try:
-    font_large = ImageFont.truetype(str(font_path), 28)
-    font_small = ImageFont.truetype(str(font_path), 22)
-except Exception as e:
-    print(f"Font load error: {e}")
-    font_large = font_small = ImageFont.load_default()
-
 app = Flask(__name__)
 
 # 8 петицій: ім’я та посилання
@@ -40,14 +32,17 @@ def get_votes(petition_url):
     return 0
 
 def create_image(petitions):
-    width, height = 800, 600
+    width, height = 900, 700
     img = Image.new('RGB', (width, height), color='white')
     draw = ImageDraw.Draw(img)
 
+    # Завантажуємо шрифт
+    font_path = Path("fonts/DejaVuSans.ttf")  # Переконайся, що файл існує!
     try:
-        font_large = ImageFont.truetype("arial.ttf", 28)
-        font_small = ImageFont.truetype("arial.ttf", 22)
-    except:
+        font_large = ImageFont.truetype(str(font_path), 28)
+        font_small = ImageFont.truetype(str(font_path), 22)
+    except Exception as e:
+        print(f"Font load error: {e}")
         font_large = font_small = ImageFont.load_default()
 
     y = 20
@@ -56,7 +51,7 @@ def create_image(petitions):
         text = f"{idx+1}. {p['name']}"
         count = f"{votes} голосів"
         draw.text((20, y), text, font=font_large, fill="black")
-        draw.text((500, y), count, font=font_small, fill="darkgreen")
+        draw.text((600, y), count, font=font_small, fill="darkgreen")
         y += 60
 
     # Підпис внизу
