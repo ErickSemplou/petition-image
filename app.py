@@ -4,6 +4,15 @@ import requests
 from bs4 import BeautifulSoup
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
+
+font_path = Path("DejaVuSans.ttf")
+try:
+    font_large = ImageFont.truetype(str(font_path), 28)
+    font_small = ImageFont.truetype(str(font_path), 22)
+except Exception as e:
+    print(f"Font load error: {e}")
+    font_large = font_small = ImageFont.load_default()
 
 app = Flask(__name__)
 
