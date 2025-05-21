@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, send_file
+from flask import Flask, send_file, render_template_string
 import requests
 from bs4 import BeautifulSoup
 from io import BytesIO
@@ -36,8 +36,8 @@ def create_image(petitions):
     img = Image.new('RGB', (width, height), color='white')
     draw = ImageDraw.Draw(img)
 
-    # Завантажуємо шрифт
-    font_path = Path("fonts/DejaVuSans.ttf")  # Переконайся, що файл існує!
+    # Шрифт (переконайся, що файл fonts/DejaVuSans.ttf є у проекті)
+    font_path = Path("fonts/DejaVuSans.ttf")
     try:
         font_large = ImageFont.truetype(str(font_path), 28)
         font_small = ImageFont.truetype(str(font_path), 22)
@@ -54,7 +54,6 @@ def create_image(petitions):
         draw.text((600, y), count, font=font_small, fill="darkgreen")
         y += 60
 
-    # Підпис внизу
     footer = "💔 8 ЯНГОЛІВ, ЯКІ НАЗАВЖДИ У ПАМ'ЯТІ. ПІДПИШИСЬ 🙏"
     draw.text((20, y + 30), footer, font=font_small, fill="red")
 
@@ -67,6 +66,38 @@ def create_image(petitions):
 def petition_image():
     image = create_image(petitions)
     return send_file(image, mimetype='image/png')
+
+@app.route("/petition_page")
+def petition_page():
+    # Заміни на повний URL, якщо розгортаєш на сервері
+    image_url = "/petition_image"
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="uk">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Петиції - Підтримай героїв</title>
+
+        <!-- Open Graph для Facebook -->
+        <meta property="og:title" content="Петиції - Підтримай героїв" />
+        <meta property="og:description" content="Підпиши петиції за 8 Янголів, які назавжди у пам'яті." />
+        <meta property="og:image" content="{image_url}" />
+        <meta property="og:type" content="website" />
+
+        <!-- Twitter Cards -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Петиції - Підтримай героїв" />
+        <meta name="twitter:description" content="Підпиши петиції за 8 Янголів, які назавжди у пам'яті." />
+        <meta name="twitter:image" content="{image_url}" />
+    </head>
+    <body>
+        <h1>Петиції - Підтримай героїв</h1>
+        <p>Переглянь динамічний статус петицій нижче.</p>
+        <img src="{image_url}" alt="Петиції" />
+    </body>
+    </html>
+    """
+    return render_template_string(html)
 
 if __name__ == "__main__":
     app.run()
