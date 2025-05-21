@@ -1,53 +1,67 @@
-
 from flask import Flask, send_file
-from PIL import Image, ImageDraw, ImageFont
 import requests
 from bs4 import BeautifulSoup
 from io import BytesIO
+from PIL import Image, ImageDraw, ImageFont
 
 app = Flask(__name__)
 
+# 8 петицій: ім’я та посилання
 petitions = [
-    ("Роман Кінаш", "https://petition.president.gov.ua/petition/245246"),
-    ("Антон Листопад", "https://petition.president.gov.ua/petition/245654"),
-    ("Василь Клекач", "https://petition.president.gov.ua/petition/244660"),
-    ("Олег Гнед", "https://petition.president.gov.ua/petition/244852"),
-    ("Юрій Бузіков", "https://petition.president.gov.ua/petition/244036"),
-    ("Богдан Танасюк", "https://petition.president.gov.ua/petition/243292"),
-    ("Руслан Валько", "https://petition.president.gov.ua/petition/244108"),
-    ("Юрій Чмут", "https://petition.president.gov.ua/petition/243630")
+    {"name": "Роман Кінаш", "url": "https://petition.president.gov.ua/petition/245246"},
+    {"name": "Антон Листопад", "url": "https://petition.president.gov.ua/petition/245654"},
+    {"name": "Василь Клекач", "url": "https://petition.president.gov.ua/petition/244660"},
+    {"name": "Олег Гнед", "url": "https://petition.president.gov.ua/petition/244852"},
+    {"name": "Юрій Бузіков", "url": "https://petition.president.gov.ua/petition/244036"},
+    {"name": "Богдан Танасюк", "url": "https://petition.president.gov.ua/petition/243292"},
+    {"name": "Руслан Валько", "url": "https://petition.president.gov.ua/petition/244108"},
+    {"name": "Юрій Чмут", "url": "https://petition.president.gov.ua/petition/243630"},
 ]
 
-def get_signatures(url):
+def get_votes(petition_url):
     try:
-        r = requests.get(url, timeout=5)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        tag = soup.find("span", class_="counter")
-        return tag.text.strip() if tag else "Н/Д"
-    except:
-        return "Н/Д"
+        r = requests.get(petition_url)
+        soup = BeautifulSoup(r.text, "html.parser")
+        span = soup.select_one("div.petition_votes_txt span")
+        if span:
+            return int(span.text.replace(" ", "").strip())
+    except Exception as e:
+        print(f"Error fetching {petition_url}: {e}")
+    return 0
 
-@app.route("/")
-def petition_image():
-    img = Image.new('RGB', (1200, 630), color="#2C3E50")
+def create_image(petitions):
+    width, height = 800, 600
+    img = Image.new('RGB', (width, height), color='white')
     draw = ImageDraw.Draw(img)
 
-    font_title = ImageFont.truetype("DejaVuSans-Bold.ttf", 38)
-    font_text = ImageFont.truetype("DejaVuSans.ttf", 26)
+    try:
+        font_large = ImageFont.truetype("arial.ttf", 28)
+        font_small = ImageFont.truetype("arial.ttf", 22)
+    except:
+        font_large = font_small = ImageFont.load_default()
 
-    draw.text((60, 30), "💔 8 ЯНГОЛІВ, ЯКІ НАЗАВЖДИ В ПАМ'ЯТІ...", font=font_title, fill="#FFD700")
-    draw.text((60, 90), "🙏 ВІДДАЙ ШАНУ — ПІДПИШИ ПЕТИЦІЮ", font=font_text, fill="#FFFFFF")
+    y = 20
+    for idx, p in enumerate(petitions):
+        votes = get_votes(p["url"])
+        text = f"{idx+1}. {p['name']}"
+        count = f"{votes} голосів"
+        draw.text((20, y), text, font=font_large, fill="black")
+        draw.text((500, y), count, font=font_small, fill="darkgreen")
+        y += 60
 
-    y = 160
-    for i, (name, url) in enumerate(petitions):
-        count = get_signatures(url)
-        draw.text((60, y), f"{i+1}. {name}", font=font_text, fill="#FFFFFF")
-        draw.text((700, y), f"{count} підписів", font=font_text, fill="#C0C0C0")
-        y += 45
+    # Підпис внизу
+    footer = "💔 8 ЯНГОЛІВ, ЯКІ НАЗАВЖДИ У ПАМ'ЯТІ. ПІДПИШИСЬ 🙏"
+    draw.text((20, y + 30), footer, font=font_small, fill="red")
 
-    draw.text((60, y + 20), "✍️ Будь ласка, підпишіть петиції", font=font_text, fill="#D3D3D3")
+    output = BytesIO()
+    img.save(output, format='PNG')
+    output.seek(0)
+    return output
 
-    img_bytes = BytesIO()
-    img.save(img_bytes, format='PNG')
-    img_bytes.seek(0)
-    return send_file(img_bytes, mimetype='image/png')
+@app.route("/petition_image")
+def petition_image():
+    image = create_image(petitions)
+    return send_file(image, mimetype='image/png')
+
+if __name__ == "__main__":
+    app.run(debug=True)
